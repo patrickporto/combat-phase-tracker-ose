@@ -1,13 +1,13 @@
 {
-    "id": "fvtt-module-template",
+    "id": "combat-phase-tracker-ose",
     "version": "11.0.0",
     "compatibility": {
         "minimum": "11",
         "verified": "11",
         "maximum": "11"
     },
-    "title": "fvtt-module-template",
-    "description": "A Foundry VTT module template",
+    "title": "Combat Phase Tracker (Old School Essentials)",
+    "description": "A combat tracker for Old School Essentials.",
     "languages": [
         {
             "lang": "en",
@@ -15,8 +15,8 @@
             "path": "lang/en.json"
         }
     ],
-    "url": "https://github.com/patrickporto/fvtt-module-template",
+    "url": "https://github.com/patrickporto/combat-phase-tracker-ose",
     "esmodules": [
-        "fvtt-module-template.js"
+        "combat-phase-tracker-ose.js"
     ]
 }
