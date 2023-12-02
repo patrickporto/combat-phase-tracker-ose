@@ -17,9 +17,20 @@ Hooks.on(`combat-phase-tracker.init`, async ({ combatTrackerPhases }) => {
         async onActivate({ combat, createPlaceholder }) {
             const groups = {};
             const combatants = combat?.combatants;
-            combatants.forEach((cbt) => {
-                const group = cbt.getFlag(game.system.id, "group");
-                groups[group] = { present: true, name: group };
+            combatants.forEach((combatant) => {
+                const groupColor = combatant.getFlag(game.system.id, "group");
+                let group = groups[groupColor];
+                if (!group) {
+                    groups[groupColor] = {
+                        name: groupColor,
+                        prepareSpell: []
+                    };
+                    group = groups[groupColor];
+                }
+                const prepareSpell = combatant.getFlag(game.system.id, "prepareSpell")
+                if (prepareSpell) {
+                    group.prepareSpell.push(combatant);
+                }
             });
             // Roll init
             for (const group in groups) {
@@ -41,84 +52,40 @@ Hooks.on(`combat-phase-tracker.init`, async ({ combatTrackerPhases }) => {
                     details: group.initiative,
                     cssClass: `ose-${group.name}-initiative`,
                 });
+                const subPhases = [
+                    {
+                        name: 'COMBATPHASETRACKEROSE.Movement',
+                        cssClass: 'ose-movement',
+                    },
+                    {
+                        name: 'COMBATPHASETRACKEROSE.MissileAttacks',
+                        cssClass: 'ose-missile-attacks',
+                    },
+                ]
+                if (group.prepareSpell.length > 0) {
+                    subPhases.push({
+                        name: 'COMBATPHASETRACKEROSE.SpellCasting',
+                        cssClass: 'ose-spell-casting',
+                        getCombatants(combat) {
+                            return combat.combatants.filter(c => c.getFlag(game.system.id, 'group') === group.name && c.getFlag(game.system.id, 'prepareSpell'))
+                        },
+                    })
+                }
+                subPhases.push({
+                    name: 'COMBATPHASETRACKEROSE.MeleeAttacks',
+                    cssClass: 'ose-melee-attacks',
+                })
+                combatTrackerPhases.add({
+                    name: group.name,
+                    cssClass: 'ose-winning-acts',
+                    scope: 'round',
+                    getCombatants(combat) {
+                        return combat.combatants.filter(c => c.getFlag(game.system.id, 'group') === group.name)
+                    },
+                    subPhases,
+                })
             }
             combat.setFlag(CANONICAL_NAME, 'groups', sortedGroups)
         }
-    })
-    combatTrackerPhases.add({
-        name: 'COMBATPHASETRACKEROSE.WinningActs',
-        cssClass: 'ose-winning-acts',
-        getCombatants(combat) {
-            const initiative = combat.getFlag(CANONICAL_NAME, 'initiative')
-            if (!initiative) {
-                return []
-            }
-            const winner = initiative.friendly > initiative.hostile ? CONST.TOKEN_DISPOSITIONS.FRIENDLY : CONST.TOKEN_DISPOSITIONS.HOSTILE
-
-            return combat.combatants.filter(c => c.token.disposition === winner)
-        },
-        subPhases: [
-            {
-                name: 'COMBATPHASETRACKEROSE.Movement',
-                cssClass: 'ose-movement',
-            },
-            {
-                name: 'COMBATPHASETRACKEROSE.MissileAttacks',
-                cssClass: 'ose-missile-attacks',
-            },
-            {
-                name: 'COMBATPHASETRACKEROSE.SpellCasting',
-                cssClass: 'ose-spell-casting',
-                autoSkip({ combatants, combat }) {
-                    const hasSpellCasting = Object.values(combatants).some(({ id }) => {
-                        const combatant = combat.combatants.get(id)
-                        return combatant.getFlag(game.system.id, 'declareSpells')
-                    })
-                    return !hasSpellCasting
-                },
-            },
-            {
-                name: 'COMBATPHASETRACKEROSE.MeleeAttacks',
-                cssClass: 'ose-melee-attacks',
-            }
-        ]
-    })
-    combatTrackerPhases.add({
-        name: 'COMBATPHASETRACKEROSE.OtherSidesAct',
-        cssClass: 'ose-winning-acts',
-        getCombatants(combat) {
-            const initiative = combat.getFlag(CANONICAL_NAME, 'initiative')
-            if (!initiative) {
-                return []
-            }
-            const winner = initiative.friendly > initiative.hostile ? CONST.TOKEN_DISPOSITIONS.FRIENDLY : CONST.TOKEN_DISPOSITIONS.HOSTILE
-
-            return combat.combatants.filter(c => c.token.disposition !== winner)
-        },
-        subPhases: [
-            {
-                name: 'COMBATPHASETRACKEROSE.Movement',
-                cssClass: 'ose-movement',
-            },
-            {
-                name: 'COMBATPHASETRACKEROSE.MissileAttacks',
-                cssClass: 'ose-missile-attacks',
-            },
-            {
-                name: 'COMBATPHASETRACKEROSE.SpellCasting',
-                cssClass: 'ose-spell-casting',
-                autoSkip({ combatants, combat }) {
-                    const hasSpellCasting = Object.values(combatants).some(({ id }) => {
-                        const combatant = combat.combatants.get(id)
-                        return combatant.getFlag(game.system.id, 'declareSpells')
-                    })
-                    return !hasSpellCasting
-                },
-            },
-            {
-                name: 'COMBATPHASETRACKEROSE.MeleeAttacks',
-                cssClass: 'ose-melee-attacks',
-            }
-        ]
     })
 });
