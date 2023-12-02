@@ -1,4 +1,4 @@
-# combat-phase-tracker-ose
+# Combat Phase Tracker (Old School Essentials)
 
 ![](https://img.shields.io/badge/Foundry-v11-informational)
 [![Donate via Ko-Fi](https://img.shields.io/badge/donate-ko--fi-red.svg?logo=ko-fi)](https://ko-fi.com/darkmoor) [![Latest Version](https://img.shields.io/github/v/tag/patrickporto/combat-phase-tracker-ose?label=version)](https://github.com/patrickporto/combat-phase-tracker-ose/releases) [![Download Count](https://img.shields.io/github/downloads/patrickporto/combat-phase-tracker-ose/latest/combat-phase-tracker-ose.zip)](https://github.com/patrickporto/combat-phase-tracker-ose/releases)
@@ -6,9 +6,4 @@
 
 ## About
 
-> TODO
-
-## Settings
-
-> TODO
-
+This module is a combat tracker for Old School Essentials (OSE) system. It is based on the [Combat Tracker](https://github.com/patrickporto/combat-phase-tracker)
