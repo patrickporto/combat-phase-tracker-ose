@@ -6,4 +6,4 @@
 
 ## About
 
-This module is a combat tracker for Old School Essentials (OSE) system. It is based on the [Combat Tracker](https://github.com/patrickporto/combat-phase-tracker)
+A combat tracker for Old School Essentials (OSE) system. It is based on the [Combat Tracker](https://github.com/patrickporto/combat-phase-tracker)
