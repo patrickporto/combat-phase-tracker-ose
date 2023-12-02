@@ -1,4 +1,4 @@
-import { MODULE_NAME } from "./constants.js";
+import { CANONICAL_NAME } from "./constants.js";
 import "./combat-phase-tracker-ose.css"
 
 
