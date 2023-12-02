@@ -18,5 +18,8 @@
     "url": "https://github.com/patrickporto/combat-phase-tracker-ose",
     "esmodules": [
         "combat-phase-tracker-ose.js"
+    ],
+    "styles": [
+        "combat-phase-tracker-ose.css"
     ]
 }

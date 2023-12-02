@@ -1,75 +1,48 @@
 import { CANONICAL_NAME } from "./constants.js";
 import "./combat-phase-tracker-ose.css"
 
+Hooks.on(`init`, () => {
+    game.ose.oseCombat.rollInitiative = () => { }
+});
 
 Hooks.on(`combat-phase-tracker.init`, async ({ combatTrackerPhases }) => {
     combatTrackerPhases.add({
         name: 'COMBATPHASETRACKEROSE.DeclareSpellsAndRetreats',
         cssClass: 'ose-declare-spells-and-retreats',
-        controls: [
-            {
-                content: '<i class="fas fa-magic">',
-                tooltip: 'Declare Spells',
-                async onClick({ combatant, addCombatantCssClass, removeCombatantCssClass }) {
-                    const declareSpells = combatant.getFlag(CANONICAL_NAME, 'declareSpells')
-                    const newDeclareSpells = !declareSpells
-                    await combatant.setFlag(CANONICAL_NAME, 'declareSpells', newDeclareSpells)
-                    if (newDeclareSpells) {
-                        addCombatantCssClass(combatant.id, 'declare-spells')
-                    } else {
-                        removeCombatantCssClass(combatant.id, 'declare-spells')
-                    }
-                },
-                async onActivate({ combat, removeCombatantCssClass }) {
-                    for (const combatant of combat.combatants) {
-                        await combatant.setFlag(CANONICAL_NAME, 'declareSpells', false)
-                        removeCombatantCssClass(combatant.id, 'declare-spells')
-                    }
-                }
-            }
-        ]
     })
     combatTrackerPhases.add({
         name: 'COMBATPHASETRACKEROSE.Initiative',
         cssClass: 'ose-initiative',
         showPlaceholders: true,
         async onActivate({ combat, createPlaceholder }) {
-            let friendly = new Roll('1d6')
-            let hostile = new Roll('1d6')
-            await Promise.all([
-                friendly.roll(),
-                hostile.roll()
-            ])
-            while (friendly.total === hostile.total) {
-                friendly = new Roll('1d6')
-                hostile = new Roll('1d6')
-                await Promise.all([
-                    friendly.roll(),
-                    hostile.roll()
-                ])
+            const groups = {};
+            const combatants = combat?.combatants;
+            combatants.forEach((cbt) => {
+                const group = cbt.getFlag(game.system.id, "group");
+                groups[group] = { present: true, name: group };
+            });
+            // Roll init
+            for (const group in groups) {
+                const roll = new Roll("1d6").evaluate({ async: false });
+                await roll.toMessage({
+                    flavor: game.i18n.format("OSE.roll.initiative", {
+                        group: CONFIG.OSE.colors[group],
+                    }),
+                });
+                groups[group].initiative = roll.total;
             }
-            combat.setFlag(CANONICAL_NAME, 'initiative', {
-                friendly: friendly.total,
-                hostile: hostile.total,
+
+            const sortedGroups = Object.values(groups).sort((a, b) => {
+                return a.initiative - b.initiative;
             })
-            await Promise.all([
-                friendly.toMessage({
-                    flavor: 'Friendly Initiative'
-                }),
-                hostile.toMessage({
-                    flavor: 'Hostile Initiative'
-                }),
-            ])
-            createPlaceholder({
-                name: 'Friendly',
-                details: friendly.total,
-                cssClass: 'ose-friendly-initiative',
-            })
-            createPlaceholder({
-                name: 'Hostile',
-                details: hostile.total,
-                cssClass: 'ose-hostile-initiative',
-            })
+            for (const group of sortedGroups) {
+                createPlaceholder({
+                    name: group.name,
+                    details: group.initiative,
+                    cssClass: `ose-${group.name}-initiative`,
+                });
+            }
+            combat.setFlag(CANONICAL_NAME, 'groups', sortedGroups)
         }
     })
     combatTrackerPhases.add({
@@ -99,7 +72,7 @@ Hooks.on(`combat-phase-tracker.init`, async ({ combatTrackerPhases }) => {
                 autoSkip({ combatants, combat }) {
                     const hasSpellCasting = Object.values(combatants).some(({ id }) => {
                         const combatant = combat.combatants.get(id)
-                        return combatant.getFlag(CANONICAL_NAME, 'declareSpells')
+                        return combatant.getFlag(game.system.id, 'declareSpells')
                     })
                     return !hasSpellCasting
                 },
@@ -137,7 +110,7 @@ Hooks.on(`combat-phase-tracker.init`, async ({ combatTrackerPhases }) => {
                 autoSkip({ combatants, combat }) {
                     const hasSpellCasting = Object.values(combatants).some(({ id }) => {
                         const combatant = combat.combatants.get(id)
-                        return combatant.getFlag(CANONICAL_NAME, 'declareSpells')
+                        return combatant.getFlag(game.system.id, 'declareSpells')
                     })
                     return !hasSpellCasting
                 },
