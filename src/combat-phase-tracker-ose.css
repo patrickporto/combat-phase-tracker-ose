@@ -5,3 +5,34 @@
 .combat-sidebar .combatant.move-combat .combatant-control.move-combat {
     color: var(--color-text-light-1);
 }
+
+.combat-sidebar .combatant.flag-green .combatant-control.flag {
+    color: green;
+}
+
+.combat-sidebar .combatant.flag-red .combatant-control.flag {
+    color: red;
+}
+
+.combat-sidebar .combatant.flag-yellow .combatant-control.flag {
+    color: yellow;
+}
+
+.combat-sidebar .combatant.flag-purple .combatant-control.flag {
+    color: purple;
+}
+
+
+.combat-sidebar .combatant.flag-blue .combatant-control.flag {
+    color: blue;
+}
+
+
+.combat-sidebar .combatant.flag-orange .combatant-control.flag {
+    color: orange;
+}
+
+
+.combat-sidebar .combatant.flag-white .combatant-control.flag {
+    color: white;
+}

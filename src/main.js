@@ -9,6 +9,31 @@ Hooks.on(`init`, () => {
 
 const controls = [
     {
+        content: '<i class="fas fa-flag"></i>',
+        cssClass: 'flag',
+        async onMount({ combatant, addTurnCssClass, removeTurnCssClass }) {
+            const color = combatant.getFlag(game.system.id, "group");
+            addTurnCssClass(combatant.id, `flag-${color}`)
+        },
+        async onClick({ combatant, addTurnCssClass, removeTurnCssClass }) {
+            if (!game.user.isGM) {
+                return;
+            }
+            const currentColor = combatant.getFlag(game.system.id, "group");
+            const colors = Object.keys(CONFIG.OSE.colors);
+            let index = colors.indexOf(currentColor);
+            if (index + 1 === colors.length) {
+                index = 0;
+            } else {
+                index++;
+            }
+            const newColor = colors[index];
+            combatant.setFlag(game.system.id, "group", newColor);
+            removeTurnCssClass(combatant.id, `flag-${currentColor}`)
+            addTurnCssClass(combatant.id, `flag-${newColor}`)
+        }
+    },
+    {
         content: '<i class="fas fa-walking"></i>',
         tooltip: 'OSE.CombatFlag.RetreatFromMeleeDeclared',
         cssClass: 'move-combat',
