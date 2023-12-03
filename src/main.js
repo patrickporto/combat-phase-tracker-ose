@@ -27,6 +27,7 @@ Hooks.on(`combat-phase-tracker.init`, async ({ combatTrackerPhases }) => {
         async onActivate({ combat, createPlaceholder, phases }) {
             phases.removePhasesByScope('round')
             const initiative = game.settings.get(game.system.id, "initiative");
+            const reroll = game.settings.get(game.system.id, "rerollInitiative");
             if (initiative !== 'group') {
                 return
             }
@@ -59,23 +60,29 @@ Hooks.on(`combat-phase-tracker.init`, async ({ combatTrackerPhases }) => {
                     group.prepareSpell.push(combatant);
                 }
             };
-            // Roll init
+            const lastRoundGroups = combat.getFlag(CANONICAL_NAME, 'groups')
             for (const group in groups) {
-                const roll = new Roll("1d6").evaluate({ async: false });
-                await roll.toMessage({
-                    flavor: game.i18n.format("OSE.roll.initiative", {
-                        group: CONFIG.OSE.colors[group],
-                    }),
-                });
-                groups[group].initiative = roll.total;
+                const lastInitiative = lastRoundGroups?.[group]?.initiative ?? null
+                if (lastInitiative === null || reroll !== 'keep') {
+                    const roll = new Roll("1d6").evaluate({ async: false });
+                    await roll.toMessage({
+                        flavor: game.i18n.format("OSE.roll.initiative", {
+                            group: CONFIG.OSE.colors[group],
+                        }),
+                    });
+                    groups[group].initiative = roll.total;
+                } else {
+                    groups[group].initiative = lastInitiative
+                }
             }
+            await combat.setFlag(CANONICAL_NAME, 'groups', groups)
 
             const sortedGroups = Object.values(groups).sort((a, b) => {
                 return a.initiative - b.initiative;
             })
             for (const group of sortedGroups) {
                 createPlaceholder({
-                    name: group.name,
+                    name: CONFIG.OSE.colors[group.name],
                     initiative: group.initiative,
                     hasRolled: true,
                     cssClass: `ose-${group.name}-initiative`,
@@ -109,7 +116,7 @@ Hooks.on(`combat-phase-tracker.init`, async ({ combatTrackerPhases }) => {
                     cssClass: 'ose-melee-attacks',
                 })
                 combatTrackerPhases.add({
-                    name: group.name,
+                    name: CONFIG.OSE.colors[group.name],
                     cssClass: `ose-acts ${group.name}`,
                     scope: 'round',
                     getCombatants(combat) {
@@ -163,7 +170,6 @@ Hooks.on(`combat-phase-tracker.init`, async ({ combatTrackerPhases }) => {
                     subPhases: slowSubPhases,
                 })
             }
-            combat.setFlag(CANONICAL_NAME, 'groups', sortedGroups)
         }
     })
 });
