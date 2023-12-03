@@ -14,10 +14,22 @@ Hooks.on(`combat-phase-tracker.init`, async ({ combatTrackerPhases }) => {
     combatTrackerPhases.add({
         name: 'COMBATPHASETRACKEROSE.Initiative',
         cssClass: 'ose-initiative',
-        getCombatants() {
-            return []
+        getCombatants(combat) {
+            const initiative = game.settings.get(game.system.id, "initiative");
+            if (initiative === 'group') {
+                return []
+            }
+            return combat.combatants.filter(combatant => {
+                const actorData = combatant.actor?.system;
+                return !actorData.isSlow
+            })
         },
-        async onActivate({ combat, createPlaceholder }) {
+        async onActivate({ combat, createPlaceholder, phases }) {
+            phases.removePhasesByScope('round')
+            const initiative = game.settings.get(game.system.id, "initiative");
+            if (initiative !== 'group') {
+                return
+            }
             const groups = {};
             const slow = {
                 prepareSpell: [],
@@ -64,7 +76,8 @@ Hooks.on(`combat-phase-tracker.init`, async ({ combatTrackerPhases }) => {
             for (const group of sortedGroups) {
                 createPlaceholder({
                     name: group.name,
-                    details: group.initiative,
+                    initiative: group.initiative,
+                    hasRolled: true,
                     cssClass: `ose-${group.name}-initiative`,
                 });
                 const subPhases = [
