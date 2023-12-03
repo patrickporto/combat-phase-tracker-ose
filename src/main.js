@@ -3,6 +3,7 @@ import "./combat-phase-tracker-ose.css"
 
 Hooks.on(`init`, () => {
     game.ose.oseCombat.rollInitiative = () => { }
+    game.ose.oseCombat.addContextEntry = () => { }
 });
 
 Hooks.on(`combat-phase-tracker.init`, async ({ combatTrackerPhases }) => {
