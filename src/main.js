@@ -4,12 +4,47 @@ import "./combat-phase-tracker-ose.css"
 Hooks.on(`init`, () => {
     game.ose.oseCombat.rollInitiative = () => { }
     game.ose.oseCombat.addContextEntry = () => { }
+    game.ose.oseCombat.format = () => { }
 });
+
+const controls = [
+    {
+        content: '<i class="fas fa-walking"></i>',
+        tooltip: 'OSE.CombatFlag.RetreatFromMeleeDeclared',
+        cssClass: 'move-combat',
+        async onClick({ combatant, addTurnCssClass, removeTurnCssClass }) {
+            const moveInCombat = combatant.getFlag(game.system.id, "moveInCombat");
+            const nextMoveInCombat = !moveInCombat;
+            await combatant.setFlag(game.system.id, "moveInCombat", nextMoveInCombat);
+            if (nextMoveInCombat) {
+                addTurnCssClass(combatant.id, 'move-combat')
+            } else {
+                removeTurnCssClass(combatant.id, 'move-combat')
+            }
+        }
+    },
+    {
+        content: '<i class="fas fa-magic"></i>',
+        cssClass: 'prepare-spell',
+        tooltip: 'OSE.CombatFlag.SpellDeclared',
+        async onClick({ combatant, addTurnCssClass, removeTurnCssClass }) {
+            const prepareSpell = combatant.getFlag(game.system.id, "prepareSpell");
+            const nextPrepareSpell = !prepareSpell;
+            await combatant.setFlag(game.system.id, "prepareSpell", nextPrepareSpell);
+            if (nextPrepareSpell) {
+                addTurnCssClass(combatant.id, 'prepare-spell')
+            } else {
+                removeTurnCssClass(combatant.id, 'prepare-spell')
+            }
+        }
+    },
+]
 
 Hooks.on(`combat-phase-tracker.init`, async ({ combatTrackerPhases }) => {
     combatTrackerPhases.add({
         name: 'COMBATPHASETRACKEROSE.DeclareSpellsAndRetreats',
         cssClass: 'ose-declare-spells-and-retreats',
+        controls,
     })
     combatTrackerPhases.add({
         name: 'COMBATPHASETRACKEROSE.Initiative',

@@ -1,3 +1,7 @@
-.declare-spells {
-    text-shadow: 0 0 8px var(--color-shadow-primary);
+.combat-sidebar .combatant.prepare-spell .combatant-control.prepare-spell{
+    color: var(--color-text-light-1);
+}
+
+.combat-sidebar .combatant.move-combat .combatant-control.move-combat {
+    color: var(--color-text-light-1);
 }
