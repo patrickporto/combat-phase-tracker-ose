@@ -38,6 +38,9 @@ Hooks.on(`combat-phase-tracker.init`, async ({ combatTrackerPhases }) => {
             }
             const combatants = combat?.combatants;
             for (const combatant of combatants) {
+                if (combatant.defeated) {
+                    continue;
+                }
                 const actorData = combatant.actor?.system;
                 if (actorData.isSlow) {
                     if (combatant.getFlag(game.system.id, "prepareSpell")) {
@@ -106,7 +109,7 @@ Hooks.on(`combat-phase-tracker.init`, async ({ combatTrackerPhases }) => {
                                 const belongsToGroup = combatant.getFlag(game.system.id, 'group') === group.name
                                 const isPreparingSpell = combatant.getFlag(game.system.id, 'prepareSpell')
                                 const isSlow = slow.combatants.includes(combatant.id)
-                                return belongsToGroup && isPreparingSpell && !isSlow
+                                return belongsToGroup && isPreparingSpell && !isSlow && !combatant.defeated
                             })
                         },
                     })
@@ -123,7 +126,7 @@ Hooks.on(`combat-phase-tracker.init`, async ({ combatTrackerPhases }) => {
                         return combat.combatants.filter(combatant => {
                             const belongsToGroup = combatant.getFlag(game.system.id, 'group') === group.name
                             const isSlow = slow.combatants.includes(combatant.id)
-                            return belongsToGroup && !isSlow
+                            return belongsToGroup && !isSlow && !combatant.defeated
                         })
                     },
                     subPhases,
@@ -148,7 +151,7 @@ Hooks.on(`combat-phase-tracker.init`, async ({ combatTrackerPhases }) => {
                             return combat.combatants.filter(combatant => {
                                 const isPreparingSpell = combatant.getFlag(game.system.id, 'prepareSpell')
                                 const isSlow = slow.combatants.includes(combatant.id)
-                                return isPreparingSpell && isSlow
+                                return isPreparingSpell && isSlow && !combatant.defeated
                             })
                         },
                     })
