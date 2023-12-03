@@ -21,5 +21,17 @@
     ],
     "styles": [
         "combat-phase-tracker-ose.css"
-    ]
+    ],
+    "relationships": {
+        "requires": [
+            {
+                "id": "combat-phase-tracker",
+                "type": "module",
+                "manifest": "https://github.com/patrickporto/combat-phase-tracker/releases/download/11.0.0/module.json",
+                "compatibility": {
+                    "verified": "11.0.0"
+                }
+            }
+        ]
+    }
 }
