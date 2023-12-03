@@ -13,11 +13,25 @@ Hooks.on(`combat-phase-tracker.init`, async ({ combatTrackerPhases }) => {
     combatTrackerPhases.add({
         name: 'COMBATPHASETRACKEROSE.Initiative',
         cssClass: 'ose-initiative',
-        showPlaceholders: true,
+        getCombatants() {
+            return []
+        },
         async onActivate({ combat, createPlaceholder }) {
             const groups = {};
+            const slow = {
+                prepareSpell: [],
+                combatants: []
+            }
             const combatants = combat?.combatants;
-            combatants.forEach((combatant) => {
+            for (const combatant of combatants) {
+                const actorData = combatant.actor?.system;
+                if (actorData.isSlow) {
+                    if (combatant.getFlag(game.system.id, "prepareSpell")) {
+                        slow.prepareSpell.push(combatant);
+                    }
+                    slow.combatants.push(combatant.id);
+                    continue;
+                }
                 const groupColor = combatant.getFlag(game.system.id, "group");
                 let group = groups[groupColor];
                 if (!group) {
@@ -31,7 +45,7 @@ Hooks.on(`combat-phase-tracker.init`, async ({ combatTrackerPhases }) => {
                 if (prepareSpell) {
                     group.prepareSpell.push(combatant);
                 }
-            });
+            };
             // Roll init
             for (const group in groups) {
                 const roll = new Roll("1d6").evaluate({ async: false });
@@ -67,7 +81,12 @@ Hooks.on(`combat-phase-tracker.init`, async ({ combatTrackerPhases }) => {
                         name: 'COMBATPHASETRACKEROSE.SpellCasting',
                         cssClass: 'ose-spell-casting',
                         getCombatants(combat) {
-                            return combat.combatants.filter(c => c.getFlag(game.system.id, 'group') === group.name && c.getFlag(game.system.id, 'prepareSpell'))
+                            return combat.combatants.filter(combatant => {
+                                const belongsToGroup = combatant.getFlag(game.system.id, 'group') === group.name
+                                const isPreparingSpell = combatant.getFlag(game.system.id, 'prepareSpell')
+                                const isSlow = slow.combatants.includes(combatant.id)
+                                return belongsToGroup && isPreparingSpell && !isSlow
+                            })
                         },
                     })
                 }
@@ -77,12 +96,57 @@ Hooks.on(`combat-phase-tracker.init`, async ({ combatTrackerPhases }) => {
                 })
                 combatTrackerPhases.add({
                     name: group.name,
-                    cssClass: 'ose-winning-acts',
+                    cssClass: `ose-acts ${group.name}`,
                     scope: 'round',
                     getCombatants(combat) {
-                        return combat.combatants.filter(c => c.getFlag(game.system.id, 'group') === group.name)
+                        return combat.combatants.filter(combatant => {
+                            const belongsToGroup = combatant.getFlag(game.system.id, 'group') === group.name
+                            const isSlow = slow.combatants.includes(combatant.id)
+                            return belongsToGroup && !isSlow
+                        })
                     },
                     subPhases,
+                })
+            }
+            if (slow.combatants.length > 0) {
+                const slowSubPhases = [
+                    {
+                        name: 'COMBATPHASETRACKEROSE.Movement',
+                        cssClass: 'ose-movement',
+                    },
+                    {
+                        name: 'COMBATPHASETRACKEROSE.MissileAttacks',
+                        cssClass: 'ose-missile-attacks',
+                    },
+                ]
+                if (slow.prepareSpell.length > 0) {
+                    slowSubPhases.push({
+                        name: 'COMBATPHASETRACKEROSE.SpellCasting',
+                        cssClass: 'ose-spell-casting',
+                        getCombatants(combat) {
+                            return combat.combatants.filter(combatant => {
+                                const isPreparingSpell = combatant.getFlag(game.system.id, 'prepareSpell')
+                                const isSlow = slow.combatants.includes(combatant.id)
+                                return isPreparingSpell && isSlow
+                            })
+                        },
+                    })
+                }
+                slowSubPhases.push({
+                    name: 'COMBATPHASETRACKEROSE.MeleeAttacks',
+                    cssClass: 'ose-melee-attacks',
+                })
+                combatTrackerPhases.add({
+                    name: 'COMBATPHASETRACKEROSE.Slow',
+                    cssClass: `ose-acts slow`,
+                    scope: 'round',
+                    getCombatants(combat) {
+                        return combat.combatants.filter(combatant => {
+                            const isSlow = slow.combatants.includes(combatant.id)
+                            return isSlow
+                        })
+                    },
+                    subPhases: slowSubPhases,
                 })
             }
             combat.setFlag(CANONICAL_NAME, 'groups', sortedGroups)

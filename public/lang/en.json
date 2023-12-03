@@ -4,5 +4,6 @@
     "COMBATPHASETRACKEROSE.Movement": "Movement",
     "COMBATPHASETRACKEROSE.MissileAttacks": "Missile Attacks",
     "COMBATPHASETRACKEROSE.SpellCasting": "Spell Casting",
-    "COMBATPHASETRACKEROSE.MeleeAttacks": "Melee Attacks"
+    "COMBATPHASETRACKEROSE.MeleeAttacks": "Melee Attacks",
+    "COMBATPHASETRACKEROSE.Slow": "Slow"
 }
